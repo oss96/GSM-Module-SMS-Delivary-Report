@@ -24,19 +24,23 @@
         /// </summary>
         private void InitializeComponent() {
             this.listViewSMS = new System.Windows.Forms.ListView();
+            this.columnHeaderPhoneNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderTimeStamp = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderDischarge = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderResponse = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
-            this.btnExit = new System.Windows.Forms.Button();
-            this.columnHeaderPhoneNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderResponse = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnListSMS = new System.Windows.Forms.Button();
             this.btnRefreshPorts = new System.Windows.Forms.Button();
-            this.columnHeaderTimeStamp = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderDischarge = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.programStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.checkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // listViewSMS
@@ -56,6 +60,31 @@
             this.listViewSMS.TabIndex = 0;
             this.listViewSMS.UseCompatibleStateImageBehavior = false;
             this.listViewSMS.View = System.Windows.Forms.View.Details;
+            // 
+            // columnHeaderPhoneNumber
+            // 
+            this.columnHeaderPhoneNumber.Text = "Phone Number";
+            this.columnHeaderPhoneNumber.Width = 100;
+            // 
+            // columnHeaderStatus
+            // 
+            this.columnHeaderStatus.Text = "Status";
+            this.columnHeaderStatus.Width = 100;
+            // 
+            // columnHeaderTimeStamp
+            // 
+            this.columnHeaderTimeStamp.Text = "Time Stamp";
+            this.columnHeaderTimeStamp.Width = 200;
+            // 
+            // columnHeaderDischarge
+            // 
+            this.columnHeaderDischarge.Text = "Discharge";
+            this.columnHeaderDischarge.Width = 200;
+            // 
+            // columnHeaderResponse
+            // 
+            this.columnHeaderResponse.Text = "Response";
+            this.columnHeaderResponse.Width = 300;
             // 
             // menuStrip1
             // 
@@ -78,7 +107,7 @@
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             // 
             // btnConnect
@@ -100,30 +129,15 @@
             this.comboBoxComPort.TabIndex = 3;
             this.comboBoxComPort.SelectedValueChanged += new System.EventHandler(this.comboBoxPorts_SelectedValueChanged);
             // 
-            // btnExit
+            // btnListSMS
             // 
-            this.btnExit.Location = new System.Drawing.Point(454, 29);
-            this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(75, 23);
-            this.btnExit.TabIndex = 4;
-            this.btnExit.Text = "Exit";
-            this.btnExit.UseVisualStyleBackColor = true;
-            this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
-            // 
-            // columnHeaderPhoneNumber
-            // 
-            this.columnHeaderPhoneNumber.Text = "Phone Number";
-            this.columnHeaderPhoneNumber.Width = 100;
-            // 
-            // columnHeaderStatus
-            // 
-            this.columnHeaderStatus.Text = "Status";
-            this.columnHeaderStatus.Width = 100;
-            // 
-            // columnHeaderResponse
-            // 
-            this.columnHeaderResponse.Text = "Response";
-            this.columnHeaderResponse.Width = 300;
+            this.btnListSMS.Location = new System.Drawing.Point(454, 29);
+            this.btnListSMS.Name = "btnListSMS";
+            this.btnListSMS.Size = new System.Drawing.Size(75, 23);
+            this.btnListSMS.TabIndex = 4;
+            this.btnListSMS.Text = "List SMS";
+            this.btnListSMS.UseVisualStyleBackColor = true;
+            this.btnListSMS.Click += new System.EventHandler(this.btnListSMS_Click);
             // 
             // btnRefreshPorts
             // 
@@ -135,23 +149,42 @@
             this.btnRefreshPorts.UseVisualStyleBackColor = true;
             this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshPorts_Click);
             // 
-            // columnHeaderTimeStamp
+            // statusStrip1
             // 
-            this.columnHeaderTimeStamp.Text = "Time Stamp";
-            this.columnHeaderTimeStamp.Width = 200;
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.programStatus});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 428);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(960, 22);
+            this.statusStrip1.TabIndex = 6;
+            this.statusStrip1.Text = "statusStrip1";
             // 
-            // columnHeaderDischarge
+            // programStatus
             // 
-            this.columnHeaderDischarge.Text = "Discharge";
-            this.columnHeaderDischarge.Width = 200;
+            this.programStatus.Name = "programStatus";
+            this.programStatus.Size = new System.Drawing.Size(45, 17);
+            this.programStatus.Text = "Status: ";
+            // 
+            // checkBoxAutoRefresh
+            // 
+            this.checkBoxAutoRefresh.AutoSize = true;
+            this.checkBoxAutoRefresh.Location = new System.Drawing.Point(536, 32);
+            this.checkBoxAutoRefresh.Name = "checkBoxAutoRefresh";
+            this.checkBoxAutoRefresh.Size = new System.Drawing.Size(88, 17);
+            this.checkBoxAutoRefresh.TabIndex = 7;
+            this.checkBoxAutoRefresh.Text = "Auto Refresh";
+            this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
+            this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(960, 450);
+            this.Controls.Add(this.checkBoxAutoRefresh);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRefreshPorts);
-            this.Controls.Add(this.btnExit);
+            this.Controls.Add(this.btnListSMS);
             this.Controls.Add(this.comboBoxComPort);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.listViewSMS);
@@ -161,6 +194,8 @@
             this.Text = "Form1";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -174,13 +209,16 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.ComboBox comboBoxComPort;
-        private System.Windows.Forms.Button btnExit;
+        private System.Windows.Forms.Button btnListSMS;
         private System.Windows.Forms.ColumnHeader columnHeaderPhoneNumber;
         private System.Windows.Forms.ColumnHeader columnHeaderStatus;
         private System.Windows.Forms.ColumnHeader columnHeaderResponse;
         private System.Windows.Forms.Button btnRefreshPorts;
         private System.Windows.Forms.ColumnHeader columnHeaderTimeStamp;
         private System.Windows.Forms.ColumnHeader columnHeaderDischarge;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel programStatus;
+        private System.Windows.Forms.CheckBox checkBoxAutoRefresh;
     }
 }
 
