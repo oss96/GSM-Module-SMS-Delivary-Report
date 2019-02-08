@@ -1,5 +1,5 @@
 ﻿namespace GSM_Modem {
-    partial class Form1 {
+    partial class MainForm {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -24,6 +24,7 @@
         /// </summary>
         private void InitializeComponent() {
             this.listViewSMS = new System.Windows.Forms.ListView();
+            this.columnHeaderMessageID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPhoneNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderTimeStamp = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -39,6 +40,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.programStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.checkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
+            this.buttonClear = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -49,6 +51,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewSMS.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeaderMessageID,
             this.columnHeaderPhoneNumber,
             this.columnHeaderStatus,
             this.columnHeaderTimeStamp,
@@ -56,10 +59,14 @@
             this.columnHeaderResponse});
             this.listViewSMS.Location = new System.Drawing.Point(12, 56);
             this.listViewSMS.Name = "listViewSMS";
-            this.listViewSMS.Size = new System.Drawing.Size(936, 382);
+            this.listViewSMS.Size = new System.Drawing.Size(936, 387);
             this.listViewSMS.TabIndex = 0;
             this.listViewSMS.UseCompatibleStateImageBehavior = false;
             this.listViewSMS.View = System.Windows.Forms.View.Details;
+            // 
+            // columnHeaderMessageID
+            // 
+            this.columnHeaderMessageID.Text = "ID";
             // 
             // columnHeaderPhoneNumber
             // 
@@ -153,7 +160,7 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.programStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 428);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 446);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(960, 22);
             this.statusStrip1.TabIndex = 6;
@@ -176,11 +183,22 @@
             this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
             this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
             // 
-            // Form1
+            // buttonClear
+            // 
+            this.buttonClear.Location = new System.Drawing.Point(631, 25);
+            this.buttonClear.Name = "buttonClear";
+            this.buttonClear.Size = new System.Drawing.Size(75, 23);
+            this.buttonClear.TabIndex = 8;
+            this.buttonClear.Text = "Clear";
+            this.buttonClear.UseVisualStyleBackColor = true;
+            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(960, 450);
+            this.ClientSize = new System.Drawing.Size(960, 468);
+            this.Controls.Add(this.buttonClear);
             this.Controls.Add(this.checkBoxAutoRefresh);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRefreshPorts);
@@ -190,8 +208,9 @@
             this.Controls.Add(this.listViewSMS);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "MainForm";
+            this.Text = "GSM Delivery Reporter";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
@@ -219,6 +238,8 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel programStatus;
         private System.Windows.Forms.CheckBox checkBoxAutoRefresh;
+        private System.Windows.Forms.ColumnHeader columnHeaderMessageID;
+        private System.Windows.Forms.Button buttonClear;
     }
 }
 

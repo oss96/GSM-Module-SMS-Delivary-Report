@@ -10,23 +10,27 @@ using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GSM_Modem
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
+        private bool portConnected = false;
         private SerialPort port;
         private string portName;
+        private string response;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
 
             portName = string.Empty;
             port = null;
         }
+
 
         private bool ConnectSerialPort(string portName)
         {
@@ -45,10 +49,14 @@ namespace GSM_Modem
                     {
                         port.Open();
                         programStatus.Text = "Status: Connected to " + comboBoxComPort.Text;
+                        portConnected = true;
+                        this.checkBoxAutoRefresh.Enabled = true;
                     }
                     catch (UnauthorizedAccessException)
                     {
                         programStatus.Text = "Status: COM Port is being used by another program";
+                        portConnected = false;
+                        this.checkBoxAutoRefresh.Enabled = false;
                         return false;
                     }
 
@@ -88,6 +96,8 @@ namespace GSM_Modem
             var ports = SerialPort.GetPortNames();
             comboBoxComPort.DataSource = ports;
             programStatus.Text = "Status: not connected to a COM port";
+            portConnected = false;
+            checkBoxAutoRefresh.Enabled = false;
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -146,6 +156,7 @@ namespace GSM_Modem
                 btnConnect.Text = "Connect";
                 comboBoxComPort.Enabled = true;
                 btnRefreshPorts.Enabled = true;
+                this.checkBoxAutoRefresh.Enabled = false;
             }
         }
 
@@ -171,7 +182,7 @@ namespace GSM_Modem
                 }
             }
 
-            port.WriteLine(command);
+            port.Write(command);
         }
 
         private void Port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
@@ -182,8 +193,14 @@ namespace GSM_Modem
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             Debug.WriteLine(e.EventType.ToString() + ": " + e.ToString());
-            string res = (sender as SerialPort).ReadExisting();
-            ParseSmsResponse(res);
+            response = (sender as SerialPort).ReadExisting();
+            Thread ThreadParseSMSResponse = new Thread(StartParsing);
+            ThreadParseSMSResponse.Start();
+        }
+
+        private void StartParsing()
+        {
+            ParseSmsResponse(response);
         }
 
         private void Port_PinChanged(object sender, SerialPinChangedEventArgs e)
@@ -196,7 +213,6 @@ namespace GSM_Modem
             var ports = SerialPort.GetPortNames();
             comboBoxComPort.DataSource = ports;
         }
-
 
         private void ParseSmsResponse(string response)
         {
@@ -214,25 +230,32 @@ namespace GSM_Modem
                         {
                             SmsStatusReportPdu smsInfo = (SmsStatusReportPdu)IncomingSmsPdu.Decode(parts[1], true);
                             string[] listItem = new string[] {
+                            GetResponseID(parts[0]),
                             smsInfo.RecipientAddress,
                             smsInfo.Status.Category.ToString(),
                             smsInfo.SCTimestamp.ToDateTime().ToString(),
                             smsInfo.DischargeTime.ToDateTime().ToString(),
                             parts[1]
                         };
+                            Thread.Sleep(3000);
                             listViewSMS.Invoke((MethodInvoker)delegate
                             {
                                 listViewSMS.Items.Add(new ListViewItem(listItem));
+                                listViewSMS.Refresh();
                             });
                         }
                         catch (ArgumentOutOfRangeException)
                         {
                         }
-
                     }
                 }
-
             }
+        }
+
+        private string GetResponseID(string v)
+        {
+            string[] s = v.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            return s[0];
         }
 
         private void btnListSMS_Click(object sender, EventArgs e)
@@ -240,9 +263,37 @@ namespace GSM_Modem
             SendCommand("at+cmgl=4");
         }
 
+        private void AutoRefresh()
+        {
+            while (this.checkBoxAutoRefresh.Checked && portConnected)
+            {
+                Thread.Sleep(1500);
+                if (portConnected)
+                {
+                    SendCommand("at+cmgl=4");
+                }
+                else
+                {
+                    checkBoxAutoRefresh.Checked = false;
+                    checkBoxAutoRefresh.Enabled = false;
+                }
+            }
+        }
+
         private void checkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
         {
-            //Auto Refresh On
+            Thread autoRefreshThread = new Thread(AutoRefresh);
+            autoRefreshThread.Start();
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Environment.Exit(Environment.ExitCode);
+        }
+
+        private void buttonClear_Click(object sender, EventArgs e)
+        {
+            this.listViewSMS.Items.Clear();
         }
     }
 }
