@@ -125,7 +125,7 @@
             this.btnConnect.TabIndex = 2;
             this.btnConnect.Text = "Connect";
             this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.buttonConnect_Click);
+            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
             // comboBoxComPort
             // 
@@ -134,7 +134,6 @@
             this.comboBoxComPort.Name = "comboBoxComPort";
             this.comboBoxComPort.Size = new System.Drawing.Size(198, 21);
             this.comboBoxComPort.TabIndex = 3;
-            this.comboBoxComPort.SelectedValueChanged += new System.EventHandler(this.comboBoxPorts_SelectedValueChanged);
             // 
             // btnListSMS
             // 
@@ -154,7 +153,7 @@
             this.btnRefreshPorts.TabIndex = 5;
             this.btnRefreshPorts.Text = "Refresh";
             this.btnRefreshPorts.UseVisualStyleBackColor = true;
-            this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshPorts_Click);
+            this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshports_Click);
             // 
             // statusStrip1
             // 
@@ -181,17 +180,15 @@
             this.checkBoxAutoRefresh.TabIndex = 7;
             this.checkBoxAutoRefresh.Text = "Auto Refresh";
             this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
-            this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
             // 
             // buttonClear
             // 
-            this.buttonClear.Location = new System.Drawing.Point(631, 25);
+            this.buttonClear.Location = new System.Drawing.Point(630, 29);
             this.buttonClear.Name = "buttonClear";
             this.buttonClear.Size = new System.Drawing.Size(75, 23);
             this.buttonClear.TabIndex = 8;
             this.buttonClear.Text = "Clear";
             this.buttonClear.UseVisualStyleBackColor = true;
-            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
             // 
             // MainForm
             // 
@@ -210,7 +207,6 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "GSM Delivery Reporter";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);

@@ -22,6 +22,8 @@ namespace GSM_Modem
         private SerialPort port;
         private string portName;
         private string response;
+        private Thread errorThread;
+        private AutoResetEvent receiveNow;
 
         public MainForm()
         {
@@ -32,268 +34,172 @@ namespace GSM_Modem
         }
 
 
-        private bool ConnectSerialPort(string portName)
-        {
-            try
-            {
-                if (portName != string.Empty)
-                {
-                    port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
-                    port.DataReceived += Port_DataReceived;
-                    port.ErrorReceived += Port_ErrorReceived;
-                    port.PinChanged += Port_PinChanged;
-                    port.NewLine = Environment.NewLine;
-                    port.Encoding = Encoding.ASCII;
-
-                    try
-                    {
-                        port.Open();
-                        programStatus.Text = "Status: Connected to " + comboBoxComPort.Text;
-                        portConnected = true;
-                        this.checkBoxAutoRefresh.Enabled = true;
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        programStatus.Text = "Status: COM Port is being used by another program";
-                        portConnected = false;
-                        this.checkBoxAutoRefresh.Enabled = false;
-                        return false;
-                    }
-
-                }
-                else
-                {
-                    MessageBox.Show("Port Name not set", "ERROR!");
-                    return false;
-                }
-
-            }
-            catch (IOException ioe)
-            {
-                CloseSerialPort();
-                MessageBox.Show(ioe.Message, "ERROR!");
-                return false;
-            }
-            catch (Exception e)
-            {
-                CloseSerialPort();
-                MessageBox.Show(e.Message, "ERROR!");
-                return false;
-            }
-
-            if (btnConnect.Text == "Connect")
-            {
-                btnConnect.Text = "Disconnect";
-            }
-
-            return true;
-        }
-
+        #region Events
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
             var ports = SerialPort.GetPortNames();
             comboBoxComPort.DataSource = ports;
-            programStatus.Text = "Status: not connected to a COM port";
+            this.portName = this.comboBoxComPort.Text;
+            programStatus.Text = "Status: not connected to a COM Port";
             portConnected = false;
             checkBoxAutoRefresh.Enabled = false;
         }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            CloseSerialPort();
-
-            base.OnClosing(e);
-        }
-
-        private void comboBoxPorts_SelectedValueChanged(object sender, EventArgs e)
-        {
-            var cb = sender as ComboBox;
-            portName = cb.SelectedValue.ToString();
-        }
-
-        private void CloseSerialPort()
-        {
-            if (port != null)
-            {
-                if (port.IsOpen)
-                {
-                    try
-                    {
-                        port.Close();
-
-                    }
-                    catch (IOException e)
-                    {
-                        // ignore, and just close
-                    }
-                }
-                port = null;
-            }
-        }
-
-        private void buttonConnect_Click(object sender, EventArgs e)
-        {
-            if (btnConnect.Text == "Connect")
-            {
-                if (ConnectSerialPort(portName))
-                {
-                    btnConnect.Text = "Disconnect";
-                    comboBoxComPort.Enabled = false;
-                    btnRefreshPorts.Enabled = false;
-                }
-                else
-                {
-                    System.Media.SystemSounds.Asterisk.Play();
-                }
-
-            }
-            else
-            {
-                CloseSerialPort();
-                programStatus.Text = "Status: not connected to a COM port";
-                btnConnect.Text = "Connect";
-                comboBoxComPort.Enabled = true;
-                btnRefreshPorts.Enabled = true;
-                this.checkBoxAutoRefresh.Enabled = false;
-            }
-        }
-
-        private void SendCommand(string command)
-        {
-            if (port == null)
-            {
-                if (!ConnectSerialPort(portName))
-                {
-                    return;
-                }
-            }
-
-            if (!port.IsOpen)
-            {
-                try
-                {
-                    port.Open();
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    programStatus.Text = "Status: COM port is being used by another program";
-                }
-            }
-
-            port.Write(command);
-        }
-
-        private void Port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        {
-            Debug.WriteLine(e.EventType.ToString() + ": " + e.ToString());
-        }
-
-        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            Debug.WriteLine(e.EventType.ToString() + ": " + e.ToString());
-            response = (sender as SerialPort).ReadExisting();
-            Thread ThreadParseSMSResponse = new Thread(StartParsing);
-            ThreadParseSMSResponse.Start();
-        }
-
-        private void StartParsing()
-        {
-            ParseSmsResponse(response);
-        }
-
-        private void Port_PinChanged(object sender, SerialPinChangedEventArgs e)
-        {
-            Debug.WriteLine(e.EventType.ToString() + ": " + e.ToString());
-        }
-
-        private void btnRefreshPorts_Click(object sender, EventArgs e)
+        private void btnRefreshports_Click(object sender, EventArgs e)
         {
             var ports = SerialPort.GetPortNames();
             comboBoxComPort.DataSource = ports;
+            this.portName = this.comboBoxComPort.Text;
         }
-
-        private void ParseSmsResponse(string response)
+        private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (response.ToLower().Contains("cmgl"))
+            if (btnConnect.Text == "Connect")
             {
-                string[] allResponses = response.Split(new string[] { "+CMGL:" }, StringSplitOptions.RemoveEmptyEntries);
-
-                for (int i = 1; i < allResponses.Length; i++)
-                {
-                    string[] parts = allResponses[i].Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    if (parts.Length > 1)
-                    {
-                        try
-                        {
-                            SmsStatusReportPdu smsInfo = (SmsStatusReportPdu)IncomingSmsPdu.Decode(parts[1], true);
-                            string[] listItem = new string[] {
-                            GetResponseID(parts[0]),
-                            smsInfo.RecipientAddress,
-                            smsInfo.Status.Category.ToString(),
-                            smsInfo.SCTimestamp.ToDateTime().ToString(),
-                            smsInfo.DischargeTime.ToDateTime().ToString(),
-                            parts[1]
-                        };
-                            Thread.Sleep(3000);
-                            listViewSMS.Invoke((MethodInvoker)delegate
-                            {
-                                listViewSMS.Items.Add(new ListViewItem(listItem));
-                                listViewSMS.Refresh();
-                            });
-                        }
-                        catch (ArgumentOutOfRangeException)
-                        {
-                        }
-                    }
-                }
+                OpenPortConnection(this.portName);
+            }
+            else if (btnConnect.Text == "Disconnect")
+            {
+                ClosePortConnection();
+                btnConnect.Text = "Connect";
             }
         }
-
-        private string GetResponseID(string v)
+        private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            string[] s = v.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-            return s[0];
+            try
+            {
+                if (e.EventType == SerialData.Chars)
+                {
+                    receiveNow.Set();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+
+
+        private void OpenPortConnection(string portName)
+        {
+            port = new SerialPort();
+            receiveNow = new AutoResetEvent(false);
+            try
+            {
+                port.PortName = portName;
+                port.BaudRate = 115200;
+                port.DataBits = 8;
+                port.StopBits = StopBits.One;
+                port.Parity = Parity.None;
+                port.ReadTimeout = 300;
+                port.WriteTimeout = 300;
+                port.Encoding = Encoding.GetEncoding("iso-8859-1");
+                port.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
+                port.Open();
+                port.DtrEnable = true;
+                port.RtsEnable = true;
+                programStatus.Text = "Status: Connected to COM Port " + comboBoxComPort.Text;
+                btnConnect.Text = "Disconnect";
+            }
+            catch (Exception ex)
+            {
+                TmpMessage("Error: COMPort " + comboBoxComPort.Text + " already in use by another Program");
+            }
+        }
+        private void ClosePortConnection()
+        {
+            try
+            {
+                if (port.IsOpen)
+                {
+                    port.Close();
+                    TmpMessage("Status: COM Port " + comboBoxComPort.Text + " disconnected");
+                    programStatus.Text = "Status: not connected to a COM Port";
+                }
+            }
+            catch (Exception ex)
+            {
+                TmpMessage("Error: Could not disconnect Comport " + comboBoxComPort.Text);
+            }
+        }
+        public string ExecCommand(string command)
+        {
+            try
+            {
+                port.DiscardOutBuffer();
+                port.DiscardInBuffer();
+                receiveNow.Reset();
+                port.Write(command + "\r");
+
+                string input = ReadResponse(300);
+                if ((input.Length == 0) || ((!input.EndsWith("\r\n> ")) && (!input.EndsWith("\r\nOK\r\n"))))
+                    TmpMessage("No success message was received.");
+                return input;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public string ReadResponse(int timeout)
+        {
+            string buffer = string.Empty;
+            try
+            {
+                do
+                {
+                    if (receiveNow.WaitOne(timeout, false))
+                    {
+                        string t = port.ReadExisting();
+                        buffer += t;
+                    }
+                    else
+                    {
+                        if (buffer.Length > 0)
+                            TmpMessage("Response received is incomplete.");
+                        else
+                            TmpMessage("No data received from phone.");
+                    }
+                }
+                while (!buffer.EndsWith("\r\nOK\r\n") && !buffer.EndsWith("\r\n> ") && !buffer.EndsWith("\r\nERROR\r\n"));
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return buffer;
+        }
+
+        private void TmpMessage(string errorMessage)
+        {
+            errorThread = new Thread(
+                   () => ShowErrorMessage(errorMessage));
+            errorThread.Start();
+        }
+        private void ShowErrorMessage(string message)
+        {
+            string previousMessage = programStatus.Text;
+            this.programStatus.Text = message;
+            Thread.Sleep(2500);
+            this.programStatus.Text = previousMessage;
         }
 
         private void btnListSMS_Click(object sender, EventArgs e)
         {
-            SendCommand("at+cmgl=4");
+            string result = ExecCommand("at+cmgl=4");
+            string parsedConfirmationMessage = ParseConfirmationMessage(result);
+            IncomingSmsPdu sms = IncomingSmsPdu.Decode(parsedConfirmationMessage, true);
+
+            Console.WriteLine(sms.UserDataText);
+
+            this.listViewSMS.Items.Add(result);
         }
 
-        private void AutoRefresh()
+        private string ParseConfirmationMessage(string message)
         {
-            while (this.checkBoxAutoRefresh.Checked && portConnected)
-            {
-                Thread.Sleep(1500);
-                if (portConnected)
-                {
-                    SendCommand("at+cmgl=4");
-                }
-                else
-                {
-                    checkBoxAutoRefresh.Checked = false;
-                    checkBoxAutoRefresh.Enabled = false;
-                }
-            }
-        }
-
-        private void checkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
-        {
-            Thread autoRefreshThread = new Thread(AutoRefresh);
-            autoRefreshThread.Start();
-        }
-
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            Environment.Exit(Environment.ExitCode);
-        }
-
-        private void buttonClear_Click(object sender, EventArgs e)
-        {
-            this.listViewSMS.Items.Clear();
+            string[] messageParts = message.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+            return messageParts[2];
         }
     }
 }
