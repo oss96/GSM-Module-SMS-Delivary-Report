@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -45,6 +46,7 @@ namespace GSM_Modem
             programStatus.Text = "Status: not connected to a COM Port";
             portConnected = false;
             checkBoxAutoRefresh.Enabled = false;
+            btnListSMS.Enabled = false;
         }
         private void btnRefreshports_Click(object sender, EventArgs e)
         {
@@ -78,8 +80,35 @@ namespace GSM_Modem
                 throw ex;
             }
         }
+        private void btnListSMS_Click(object sender, EventArgs e)
+        {
+            this.dataGridViewSMS.Rows.Clear();
+            this.dataGridViewSMS.Refresh();
+            string result = ExecCommand("at+cmgl=4");
+            List<ConfirmationMessage> confirmationMessages = ParseConfirmationMessage(result);
+            foreach (var item in confirmationMessages)
+            {
+                string[] row = { item.GetID().ToString(), item.GetTelNr(), item.GetStatus(), item.GetTimeStamp().ToString(), item.GetDischarge().ToString(), item.GetMessage() };
+                this.dataGridViewSMS.Rows.Add(row);
+            }
+        }
+        private void checkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
+        {
+            Thread autoRefresh = new Thread(AutoRefresh);
+            if ((sender as CheckBox).Checked)
+            {
+                autoRefresh.Start();
+            }
+            else
+            {
+                autoRefresh = null;
+            }
+        }
+        private void buttonClear_Click(object sender, EventArgs e)
+        {
+            this.dataGridViewSMS.Rows.Clear();
+        }
         #endregion
-
 
         private void OpenPortConnection(string portName)
         {
@@ -101,6 +130,8 @@ namespace GSM_Modem
                 port.RtsEnable = true;
                 programStatus.Text = "Status: Connected to COM Port " + comboBoxComPort.Text;
                 btnConnect.Text = "Disconnect";
+                this.checkBoxAutoRefresh.Enabled = true;
+                this.btnListSMS.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -115,13 +146,30 @@ namespace GSM_Modem
                 {
                     port.Close();
                     TmpMessage("Status: COM Port " + comboBoxComPort.Text + " disconnected");
-                    programStatus.Text = "Status: not connected to a COM Port";
+                    this.checkBoxAutoRefresh.Enabled = false;
+                    this.btnListSMS.Enabled = false;
                 }
             }
             catch (Exception ex)
             {
                 TmpMessage("Error: Could not disconnect Comport " + comboBoxComPort.Text);
             }
+        }
+
+        private void AutoRefresh()
+        {
+            while (this.checkBoxAutoRefresh.Checked)
+            {
+                this.InvokeEx(f => f.dataGridViewSMS.Rows.Clear());
+                string result = ExecCommand("at+cmgl=4");
+                List<ConfirmationMessage> confirmationMessages = ParseConfirmationMessage(result);
+                foreach (var item in confirmationMessages)
+                {
+                    string[] row = { item.GetID().ToString(), item.GetTelNr(), item.GetStatus(), item.GetTimeStamp().ToString(), item.GetDischarge().ToString(), item.GetMessage() };
+                    this.InvokeEx(f => f.dataGridViewSMS.Rows.Add(row));
+                }
+            }
+            Thread.Sleep(1000);
         }
         public string ExecCommand(string command)
         {
@@ -170,7 +218,6 @@ namespace GSM_Modem
             }
             return buffer;
         }
-
         private void TmpMessage(string errorMessage)
         {
             errorThread = new Thread(
@@ -184,22 +231,47 @@ namespace GSM_Modem
             Thread.Sleep(2500);
             this.programStatus.Text = previousMessage;
         }
-
-        private void btnListSMS_Click(object sender, EventArgs e)
+        private List<ConfirmationMessage> ParseConfirmationMessage(string message)
         {
-            string result = ExecCommand("at+cmgl=4");
-            string parsedConfirmationMessage = ParseConfirmationMessage(result);
-            IncomingSmsPdu sms = IncomingSmsPdu.Decode(parsedConfirmationMessage, true);
-
-            Console.WriteLine(sms.UserDataText);
-
-            this.listViewSMS.Items.Add(result);
+            List<string> messages = message.Split(new string[] { "+CMGL: " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<ConfirmationMessage> confirmationMessages = new List<ConfirmationMessage>();
+            messages.RemoveAt(0);
+            foreach (var item in messages)
+            {
+                List<string> messageParts = item.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                ConfirmationMessage newConfirmationmessage = new ConfirmationMessage();
+                foreach (var item2 in messageParts)
+                {
+                    if (item2.Contains(","))
+                    {
+                        newConfirmationmessage.SetID(Int32.Parse(item2.Remove(1)));
+                    }
+                    else if (item2.Contains("F"))
+                    {
+                        newConfirmationmessage.SetMessage(item2);
+                        IncomingSmsPdu sms = IncomingSmsPdu.Decode(item2, true);
+                        newConfirmationmessage.SetTelNr((sms as SmsStatusReportPdu).RecipientAddress);
+                        newConfirmationmessage.SetTimeStamp((sms as SmsStatusReportPdu).SCTimestamp.ToDateTime());
+                        newConfirmationmessage.SetDischarge((sms as SmsStatusReportPdu).DischargeTime.ToDateTime());
+                        newConfirmationmessage.SetStatus((sms as SmsStatusReportPdu).Status.ToString());
+                        confirmationMessages.Add(newConfirmationmessage);
+                    }
+                }
+            }
+            return confirmationMessages;
         }
-
-        private string ParseConfirmationMessage(string message)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            string[] messageParts = message.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
-            return messageParts[2];
+            try
+            {
+                if (port.IsOpen)
+                {
+                    port.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 }

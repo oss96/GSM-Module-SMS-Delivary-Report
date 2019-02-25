@@ -23,13 +23,6 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            this.listViewSMS = new System.Windows.Forms.ListView();
-            this.columnHeaderMessageID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderPhoneNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderTimeStamp = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderDischarge = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderResponse = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -41,57 +34,17 @@
             this.programStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.checkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
             this.buttonClear = new System.Windows.Forms.Button();
+            this.dataGridViewSMS = new System.Windows.Forms.DataGridView();
+            this.ColumnID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnPhoneNumber = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnTimeStamp = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnDischarge = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnResponse = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSMS)).BeginInit();
             this.SuspendLayout();
-            // 
-            // listViewSMS
-            // 
-            this.listViewSMS.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.listViewSMS.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeaderMessageID,
-            this.columnHeaderPhoneNumber,
-            this.columnHeaderStatus,
-            this.columnHeaderTimeStamp,
-            this.columnHeaderDischarge,
-            this.columnHeaderResponse});
-            this.listViewSMS.Location = new System.Drawing.Point(12, 56);
-            this.listViewSMS.Name = "listViewSMS";
-            this.listViewSMS.Size = new System.Drawing.Size(936, 387);
-            this.listViewSMS.TabIndex = 0;
-            this.listViewSMS.UseCompatibleStateImageBehavior = false;
-            this.listViewSMS.View = System.Windows.Forms.View.Details;
-            // 
-            // columnHeaderMessageID
-            // 
-            this.columnHeaderMessageID.Text = "ID";
-            // 
-            // columnHeaderPhoneNumber
-            // 
-            this.columnHeaderPhoneNumber.Text = "Phone Number";
-            this.columnHeaderPhoneNumber.Width = 100;
-            // 
-            // columnHeaderStatus
-            // 
-            this.columnHeaderStatus.Text = "Status";
-            this.columnHeaderStatus.Width = 100;
-            // 
-            // columnHeaderTimeStamp
-            // 
-            this.columnHeaderTimeStamp.Text = "Time Stamp";
-            this.columnHeaderTimeStamp.Width = 200;
-            // 
-            // columnHeaderDischarge
-            // 
-            this.columnHeaderDischarge.Text = "Discharge";
-            this.columnHeaderDischarge.Width = 200;
-            // 
-            // columnHeaderResponse
-            // 
-            this.columnHeaderResponse.Text = "Response";
-            this.columnHeaderResponse.Width = 300;
             // 
             // menuStrip1
             // 
@@ -180,6 +133,7 @@
             this.checkBoxAutoRefresh.TabIndex = 7;
             this.checkBoxAutoRefresh.Text = "Auto Refresh";
             this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
+            this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
             // 
             // buttonClear
             // 
@@ -189,12 +143,65 @@
             this.buttonClear.TabIndex = 8;
             this.buttonClear.Text = "Clear";
             this.buttonClear.UseVisualStyleBackColor = true;
+            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
+            // 
+            // dataGridViewSMS
+            // 
+            this.dataGridViewSMS.AllowUserToAddRows = false;
+            this.dataGridViewSMS.AllowUserToDeleteRows = false;
+            this.dataGridViewSMS.AllowUserToResizeRows = false;
+            this.dataGridViewSMS.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewSMS.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColumnID,
+            this.ColumnPhoneNumber,
+            this.ColumnStatus,
+            this.ColumnTimeStamp,
+            this.ColumnDischarge,
+            this.ColumnResponse});
+            this.dataGridViewSMS.Location = new System.Drawing.Point(12, 58);
+            this.dataGridViewSMS.Name = "dataGridViewSMS";
+            this.dataGridViewSMS.ReadOnly = true;
+            this.dataGridViewSMS.RowHeadersVisible = false;
+            this.dataGridViewSMS.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            this.dataGridViewSMS.Size = new System.Drawing.Size(936, 385);
+            this.dataGridViewSMS.TabIndex = 9;
+            // 
+            // ColumnID
+            // 
+            this.ColumnID.HeaderText = "ID";
+            this.ColumnID.Name = "ColumnID";
+            // 
+            // ColumnPhoneNumber
+            // 
+            this.ColumnPhoneNumber.HeaderText = "Phone Number";
+            this.ColumnPhoneNumber.Name = "ColumnPhoneNumber";
+            // 
+            // ColumnStatus
+            // 
+            this.ColumnStatus.HeaderText = "Status";
+            this.ColumnStatus.Name = "ColumnStatus";
+            // 
+            // ColumnTimeStamp
+            // 
+            this.ColumnTimeStamp.HeaderText = "Time Stamp";
+            this.ColumnTimeStamp.Name = "ColumnTimeStamp";
+            // 
+            // ColumnDischarge
+            // 
+            this.ColumnDischarge.HeaderText = "Discharge";
+            this.ColumnDischarge.Name = "ColumnDischarge";
+            // 
+            // ColumnResponse
+            // 
+            this.ColumnResponse.HeaderText = "Response";
+            this.ColumnResponse.Name = "ColumnResponse";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(960, 468);
+            this.Controls.Add(this.dataGridViewSMS);
             this.Controls.Add(this.buttonClear);
             this.Controls.Add(this.checkBoxAutoRefresh);
             this.Controls.Add(this.statusStrip1);
@@ -202,40 +209,40 @@
             this.Controls.Add(this.btnListSMS);
             this.Controls.Add(this.comboBoxComPort);
             this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.listViewSMS);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "GSM Delivery Reporter";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSMS)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.ListView listViewSMS;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.ComboBox comboBoxComPort;
         private System.Windows.Forms.Button btnListSMS;
-        private System.Windows.Forms.ColumnHeader columnHeaderPhoneNumber;
-        private System.Windows.Forms.ColumnHeader columnHeaderStatus;
-        private System.Windows.Forms.ColumnHeader columnHeaderResponse;
         private System.Windows.Forms.Button btnRefreshPorts;
-        private System.Windows.Forms.ColumnHeader columnHeaderTimeStamp;
-        private System.Windows.Forms.ColumnHeader columnHeaderDischarge;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel programStatus;
         private System.Windows.Forms.CheckBox checkBoxAutoRefresh;
-        private System.Windows.Forms.ColumnHeader columnHeaderMessageID;
         private System.Windows.Forms.Button buttonClear;
+        private System.Windows.Forms.DataGridView dataGridViewSMS;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnID;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPhoneNumber;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnTimeStamp;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDischarge;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnResponse;
     }
 }
 
