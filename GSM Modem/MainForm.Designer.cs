@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -41,6 +42,7 @@
             this.ColumnTimeStamp = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnDischarge = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnResponse = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.copyStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSMS)).BeginInit();
@@ -111,7 +113,8 @@
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.programStatus});
+            this.programStatus,
+            this.copyStatus});
             this.statusStrip1.Location = new System.Drawing.Point(0, 446);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(960, 22);
@@ -150,6 +153,10 @@
             this.dataGridViewSMS.AllowUserToAddRows = false;
             this.dataGridViewSMS.AllowUserToDeleteRows = false;
             this.dataGridViewSMS.AllowUserToResizeRows = false;
+            this.dataGridViewSMS.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridViewSMS.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridViewSMS.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewSMS.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnID,
@@ -165,41 +172,69 @@
             this.dataGridViewSMS.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridViewSMS.Size = new System.Drawing.Size(936, 385);
             this.dataGridViewSMS.TabIndex = 9;
+            this.dataGridViewSMS.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSMS_CellClick);
+            this.dataGridViewSMS.SelectionChanged += new System.EventHandler(this.dataGridViewSMS_SelectionChanged);
             // 
             // ColumnID
             // 
+            this.ColumnID.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle4;
             this.ColumnID.HeaderText = "ID";
             this.ColumnID.Name = "ColumnID";
+            this.ColumnID.ReadOnly = true;
+            this.ColumnID.Width = 43;
             // 
             // ColumnPhoneNumber
             // 
+            this.ColumnPhoneNumber.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.ColumnPhoneNumber.HeaderText = "Phone Number";
             this.ColumnPhoneNumber.Name = "ColumnPhoneNumber";
+            this.ColumnPhoneNumber.ReadOnly = true;
+            this.ColumnPhoneNumber.Width = 95;
             // 
             // ColumnStatus
             // 
+            this.ColumnStatus.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.ColumnStatus.HeaderText = "Status";
             this.ColumnStatus.Name = "ColumnStatus";
+            this.ColumnStatus.ReadOnly = true;
+            this.ColumnStatus.Width = 62;
             // 
             // ColumnTimeStamp
             // 
+            this.ColumnTimeStamp.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.ColumnTimeStamp.HeaderText = "Time Stamp";
             this.ColumnTimeStamp.Name = "ColumnTimeStamp";
+            this.ColumnTimeStamp.ReadOnly = true;
+            this.ColumnTimeStamp.Width = 81;
             // 
             // ColumnDischarge
             // 
+            this.ColumnDischarge.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.ColumnDischarge.HeaderText = "Discharge";
             this.ColumnDischarge.Name = "ColumnDischarge";
+            this.ColumnDischarge.ReadOnly = true;
+            this.ColumnDischarge.Width = 80;
             // 
             // ColumnResponse
             // 
+            this.ColumnResponse.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.ColumnResponse.HeaderText = "Response";
             this.ColumnResponse.Name = "ColumnResponse";
+            this.ColumnResponse.ReadOnly = true;
+            this.ColumnResponse.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            // 
+            // copyStatus
+            // 
+            this.copyStatus.Name = "copyStatus";
+            this.copyStatus.Size = new System.Drawing.Size(0, 17);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(960, 468);
             this.Controls.Add(this.dataGridViewSMS);
             this.Controls.Add(this.buttonClear);
@@ -243,6 +278,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnTimeStamp;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDischarge;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnResponse;
+        private System.Windows.Forms.ToolStripStatusLabel copyStatus;
     }
 }
 
