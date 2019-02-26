@@ -474,7 +474,7 @@ namespace GSM_Modem
 
         //////////////////////////////////////////
 
-        /* To do:
+        /* Next Steps:
          * save responses locally
          * delete saved responses
          * all saved responses should start with the id 11 - ... because new responses have ids from 1 - 10
