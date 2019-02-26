@@ -23,7 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -33,16 +33,18 @@
             this.btnRefreshPorts = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.programStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.copyStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.checkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
-            this.buttonClear = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.dataGridViewSMS = new System.Windows.Forms.DataGridView();
+            this.ColumnCheckBoxCell = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.ColumnID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnPhoneNumber = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnTimeStamp = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnDischarge = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnResponse = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.copyStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btnDelete = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSMS)).BeginInit();
@@ -92,7 +94,7 @@
             // 
             // btnListSMS
             // 
-            this.btnListSMS.Location = new System.Drawing.Point(454, 29);
+            this.btnListSMS.Location = new System.Drawing.Point(378, 26);
             this.btnListSMS.Name = "btnListSMS";
             this.btnListSMS.Size = new System.Drawing.Size(75, 23);
             this.btnListSMS.TabIndex = 4;
@@ -127,10 +129,15 @@
             this.programStatus.Size = new System.Drawing.Size(45, 17);
             this.programStatus.Text = "Status: ";
             // 
+            // copyStatus
+            // 
+            this.copyStatus.Name = "copyStatus";
+            this.copyStatus.Size = new System.Drawing.Size(0, 17);
+            // 
             // checkBoxAutoRefresh
             // 
             this.checkBoxAutoRefresh.AutoSize = true;
-            this.checkBoxAutoRefresh.Location = new System.Drawing.Point(536, 32);
+            this.checkBoxAutoRefresh.Location = new System.Drawing.Point(459, 30);
             this.checkBoxAutoRefresh.Name = "checkBoxAutoRefresh";
             this.checkBoxAutoRefresh.Size = new System.Drawing.Size(88, 17);
             this.checkBoxAutoRefresh.TabIndex = 7;
@@ -138,15 +145,15 @@
             this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
             this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
             // 
-            // buttonClear
+            // btnClear
             // 
-            this.buttonClear.Location = new System.Drawing.Point(630, 29);
-            this.buttonClear.Name = "buttonClear";
-            this.buttonClear.Size = new System.Drawing.Size(75, 23);
-            this.buttonClear.TabIndex = 8;
-            this.buttonClear.Text = "Clear";
-            this.buttonClear.UseVisualStyleBackColor = true;
-            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
+            this.btnClear.Location = new System.Drawing.Point(873, 27);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(75, 23);
+            this.btnClear.TabIndex = 8;
+            this.btnClear.Text = "Clear Table";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // dataGridViewSMS
             // 
@@ -159,6 +166,7 @@
             this.dataGridViewSMS.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridViewSMS.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewSMS.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColumnCheckBoxCell,
             this.ColumnID,
             this.ColumnPhoneNumber,
             this.ColumnStatus,
@@ -173,17 +181,28 @@
             this.dataGridViewSMS.Size = new System.Drawing.Size(936, 385);
             this.dataGridViewSMS.TabIndex = 9;
             this.dataGridViewSMS.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSMS_CellClick);
+            this.dataGridViewSMS.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSMS_CellValueChanged);
+            this.dataGridViewSMS.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridViewSMS_ColumnHeaderMouseClick);
             this.dataGridViewSMS.SelectionChanged += new System.EventHandler(this.dataGridViewSMS_SelectionChanged);
+            // 
+            // ColumnCheckBoxCell
+            // 
+            this.ColumnCheckBoxCell.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.ColumnCheckBoxCell.HeaderText = "";
+            this.ColumnCheckBoxCell.Name = "ColumnCheckBoxCell";
+            this.ColumnCheckBoxCell.ReadOnly = true;
+            this.ColumnCheckBoxCell.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.ColumnCheckBoxCell.Width = 5;
             // 
             // ColumnID
             // 
             this.ColumnID.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle2;
             this.ColumnID.HeaderText = "ID";
             this.ColumnID.Name = "ColumnID";
             this.ColumnID.ReadOnly = true;
+            this.ColumnID.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.ColumnID.Width = 43;
             // 
             // ColumnPhoneNumber
@@ -226,18 +245,25 @@
             this.ColumnResponse.ReadOnly = true;
             this.ColumnResponse.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             // 
-            // copyStatus
+            // btnDelete
             // 
-            this.copyStatus.Name = "copyStatus";
-            this.copyStatus.Size = new System.Drawing.Size(0, 17);
+            this.btnDelete.Enabled = false;
+            this.btnDelete.Location = new System.Drawing.Point(553, 26);
+            this.btnDelete.Name = "btnDelete";
+            this.btnDelete.Size = new System.Drawing.Size(124, 23);
+            this.btnDelete.TabIndex = 10;
+            this.btnDelete.Text = "Delete selected entries";
+            this.btnDelete.UseVisualStyleBackColor = true;
+            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(960, 468);
+            this.Controls.Add(this.btnDelete);
             this.Controls.Add(this.dataGridViewSMS);
-            this.Controls.Add(this.buttonClear);
+            this.Controls.Add(this.btnClear);
             this.Controls.Add(this.checkBoxAutoRefresh);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRefreshPorts);
@@ -270,15 +296,17 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel programStatus;
         private System.Windows.Forms.CheckBox checkBoxAutoRefresh;
-        private System.Windows.Forms.Button buttonClear;
+        private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.DataGridView dataGridViewSMS;
+        private System.Windows.Forms.ToolStripStatusLabel copyStatus;
+        private System.Windows.Forms.Button btnDelete;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ColumnCheckBoxCell;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnID;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPhoneNumber;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnStatus;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnTimeStamp;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDischarge;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnResponse;
-        private System.Windows.Forms.ToolStripStatusLabel copyStatus;
     }
 }
 

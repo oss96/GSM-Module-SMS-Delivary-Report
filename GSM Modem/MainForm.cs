@@ -19,11 +19,12 @@ namespace GSM_Modem
 {
     public partial class MainForm : Form
     {
+        //////////////////////////////////////////
+
         private SerialPort port;
         private string portName;
         private Thread statusThread;
         private AutoResetEvent receiveNow;
-        private List<string> responses;
 
         //////////////////////////////////////////
 
@@ -90,12 +91,11 @@ namespace GSM_Modem
             this.dataGridViewSMS.Refresh();
             string result = ExecCommand("at+cmgl=4");
             List<ConfirmationMessage> confirmationMessages = ParseConfirmationMessage(result);
-            responses = new List<string>();
             foreach (var item in confirmationMessages)
             {
-                responses.Add(item.GetMessage());
                 DataGridViewRow dataGridViewRow = new DataGridViewRow();
                 dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
+                        false,
                         item.GetID().ToString(),
                         item.GetTelNr(),
                         item.GetStatus(),
@@ -118,7 +118,7 @@ namespace GSM_Modem
                 autoRefresh = null;
             }
         }
-        private void buttonClear_Click(object sender, EventArgs e)
+        private void btnClear_Click(object sender, EventArgs e)
         {
             this.dataGridViewSMS.Rows.Clear();
             this.copyStatus.Text = "";
@@ -133,14 +133,27 @@ namespace GSM_Modem
                 {
                     Clipboard.SetText(senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString());
                     for (int i = 0; i < senderGrid.RowCount; i++)
-                    {
                         senderGrid.Rows[i].Cells[e.ColumnIndex].Style.BackColor = Color.White;
-                    }
                     senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.BackColor = Color.Red;
-                    SetStatusMessage("Copied Message " + senderGrid.Rows[e.RowIndex].Cells[0].Value, false);
+                    SetStatusMessage("Copied Message " + senderGrid.Rows[e.RowIndex].Cells[1].Value, false);
                 }
                 catch (Exception)
                 {
+                    ShowStatusMessage("Value could not be copied. Please Restart the PC");
+                }
+            }
+            else if (e.ColumnIndex == senderGrid.Columns.GetFirstColumn(DataGridViewElementStates.None, DataGridViewElementStates.None).Index)
+            {
+                if (e.RowIndex != -1 && senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex] is DataGridViewCheckBoxCell)
+                {
+                    if (Convert.ToBoolean(senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value) == true)
+                    {
+                        senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = (senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex] as DataGridViewCheckBoxCell).FalseValue;
+                    }
+                    else
+                    {
+                        senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = true;
+                    }
                 }
             }
         }
@@ -149,9 +162,7 @@ namespace GSM_Modem
             try
             {
                 if (port.IsOpen)
-                {
                     port.Close();
-                }
             }
             catch (Exception ex)
             {
@@ -161,12 +172,73 @@ namespace GSM_Modem
         {
             DataGridViewSelectedCellCollection cells = (sender as DataGridView).SelectedCells;
             for (int i = 0; i < cells.Count; i++)
-            {
-                if (cells[i].ColumnIndex == 5)
-                {
+                if (cells[i].ColumnIndex == 0 || cells[i].ColumnIndex == 6)
                     cells[i].Selected = false;
+        }
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            List<int> ids = new List<int>();
+            foreach (var item in dataGridViewSMS.Rows)
+                if (Convert.ToBoolean((item as DataGridViewRow).Cells[0].Value))
+                    ids.Add(Convert.ToInt32((item as DataGridViewRow).Cells[1].Value.ToString()));
+            foreach (var item in ids)
+            {
+                string result = ExecCommand("at+cmgd=" + item);
+            }
+            this.btnDelete.Enabled = false;
+            btnListSMS_Click(null, e);
+        }
+        private void dataGridViewSMS_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.ColumnIndex == 0)
+            {
+                bool shouldBeState = false;
+                foreach (var item in (sender as DataGridView).Rows)
+                {
+                    if (!Convert.ToBoolean((item as DataGridViewRow).Cells[0].Value))
+                    {
+                        shouldBeState = true;
+                    }
+                }
+
+                foreach (var item in (sender as DataGridView).Rows)
+                {
+                    (item as DataGridViewRow).Cells[0].Value = shouldBeState;
                 }
             }
+        }
+        private void dataGridViewSMS_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            var senderGrid = (DataGridView)sender;
+            bool deleteButtonState = false;
+            foreach (var item in senderGrid.Rows)
+            {
+                if (Convert.ToBoolean((item as DataGridViewRow).Cells[e.ColumnIndex].Value))
+                {
+                    deleteButtonState = true;
+                }
+            }
+            btnDelete.Enabled = deleteButtonState;
+            if (e.RowIndex != -1)
+            {
+                if (senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex] is DataGridViewCheckBoxCell)
+                {
+                    if (!Convert.ToBoolean(senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value))
+                    {
+                        foreach (var item in senderGrid.Rows[e.RowIndex].Cells)
+                            if ((item as DataGridViewCell).ColumnIndex != 6)
+                                (item as DataGridViewCell).Style.BackColor = Color.White;
+                    }
+                    else
+                    {
+                        btnDelete.Enabled = true;
+                        foreach (var item in senderGrid.Rows[e.RowIndex].Cells)
+                            if ((item as DataGridViewCell).ColumnIndex != 6)
+                                (item as DataGridViewCell).Style.BackColor = Color.LightBlue;
+                    }
+                }
+            }
+
         }
         #endregion
 
@@ -399,5 +471,14 @@ namespace GSM_Modem
             this.copyStatus.Text = message;
         }
         #endregion
+
+        //////////////////////////////////////////
+
+        /* To do:
+         * save responses locally
+         * delete saved responses
+         * all saved responses should start with the id 11 - ... because new responses have ids from 1 - 10
+         * Autorefresh without refreshing everything, only the new responses
+        */
     }
 }
