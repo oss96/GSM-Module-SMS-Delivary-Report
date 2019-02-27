@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace GSM_Modem
 {
+    [Serializable]
     class ConfirmationMessage
     {
-        private int id;
-        private string telNr;
-        private string message;
-        private DateTime timeStamp;
-        private DateTime discharge;
-        private string status;
+        public int id;
+        public string telNr;
+        public string message;
+        public DateTime timeStamp;
+        public DateTime discharge;
+        public string status;
 
 
         public ConfirmationMessage()

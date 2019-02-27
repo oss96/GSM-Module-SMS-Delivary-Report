@@ -23,9 +23,11 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentSavePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
@@ -34,7 +36,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.programStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.copyStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.checkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
+            this.chkBoxAutoRefresh = new System.Windows.Forms.CheckBox();
             this.btnClear = new System.Windows.Forms.Button();
             this.dataGridViewSMS = new System.Windows.Forms.DataGridView();
             this.ColumnCheckBoxCell = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -45,6 +47,7 @@
             this.ColumnDischarge = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnResponse = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnDelete = new System.Windows.Forms.Button();
+            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSMS)).BeginInit();
@@ -57,29 +60,49 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(960, 24);
-            this.menuStrip1.TabIndex = 1;
+            this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.changePathToolStripMenuItem,
+            this.currentSavePathToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
+            // changePathToolStripMenuItem
+            // 
+            this.changePathToolStripMenuItem.Name = "changePathToolStripMenuItem";
+            this.changePathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.changePathToolStripMenuItem.Tag = "";
+            this.changePathToolStripMenuItem.Text = "Choose Save Path";
+            this.changePathToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
+            // 
+            // currentSavePathToolStripMenuItem
+            // 
+            this.currentSavePathToolStripMenuItem.Name = "currentSavePathToolStripMenuItem";
+            this.currentSavePathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.currentSavePathToolStripMenuItem.Text = "Current Save Path";
+            this.currentSavePathToolStripMenuItem.Click += new System.EventHandler(this.currentSavePathToolStripMenuItem_Click);
+            // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Tag = "";
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // btnConnect
             // 
             this.btnConnect.Location = new System.Drawing.Point(12, 27);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(75, 23);
-            this.btnConnect.TabIndex = 2;
+            this.btnConnect.TabIndex = 0;
+            this.btnConnect.Tag = "";
             this.btnConnect.Text = "Connect";
             this.btnConnect.UseVisualStyleBackColor = true;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
@@ -90,24 +113,27 @@
             this.comboBoxComPort.Location = new System.Drawing.Point(93, 28);
             this.comboBoxComPort.Name = "comboBoxComPort";
             this.comboBoxComPort.Size = new System.Drawing.Size(198, 21);
-            this.comboBoxComPort.TabIndex = 3;
+            this.comboBoxComPort.TabIndex = 1;
+            this.comboBoxComPort.Tag = "";
             // 
             // btnListSMS
             // 
-            this.btnListSMS.Location = new System.Drawing.Point(378, 26);
+            this.btnListSMS.Location = new System.Drawing.Point(500, 29);
             this.btnListSMS.Name = "btnListSMS";
             this.btnListSMS.Size = new System.Drawing.Size(75, 23);
-            this.btnListSMS.TabIndex = 4;
+            this.btnListSMS.TabIndex = 3;
+            this.btnListSMS.Tag = "";
             this.btnListSMS.Text = "List SMS";
             this.btnListSMS.UseVisualStyleBackColor = true;
             this.btnListSMS.Click += new System.EventHandler(this.btnListSMS_Click);
             // 
             // btnRefreshPorts
             // 
-            this.btnRefreshPorts.Location = new System.Drawing.Point(297, 27);
+            this.btnRefreshPorts.Location = new System.Drawing.Point(297, 28);
             this.btnRefreshPorts.Name = "btnRefreshPorts";
-            this.btnRefreshPorts.Size = new System.Drawing.Size(75, 23);
-            this.btnRefreshPorts.TabIndex = 5;
+            this.btnRefreshPorts.Size = new System.Drawing.Size(75, 22);
+            this.btnRefreshPorts.TabIndex = 2;
+            this.btnRefreshPorts.Tag = "";
             this.btnRefreshPorts.Text = "Refresh";
             this.btnRefreshPorts.UseVisualStyleBackColor = true;
             this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshports_Click);
@@ -134,23 +160,23 @@
             this.copyStatus.Name = "copyStatus";
             this.copyStatus.Size = new System.Drawing.Size(0, 17);
             // 
-            // checkBoxAutoRefresh
+            // chkBoxAutoRefresh
             // 
-            this.checkBoxAutoRefresh.AutoSize = true;
-            this.checkBoxAutoRefresh.Location = new System.Drawing.Point(459, 30);
-            this.checkBoxAutoRefresh.Name = "checkBoxAutoRefresh";
-            this.checkBoxAutoRefresh.Size = new System.Drawing.Size(88, 17);
-            this.checkBoxAutoRefresh.TabIndex = 7;
-            this.checkBoxAutoRefresh.Text = "Auto Refresh";
-            this.checkBoxAutoRefresh.UseVisualStyleBackColor = true;
-            this.checkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.checkBoxAutoRefresh_CheckedChanged);
+            this.chkBoxAutoRefresh.AutoSize = true;
+            this.chkBoxAutoRefresh.Location = new System.Drawing.Point(581, 34);
+            this.chkBoxAutoRefresh.Name = "chkBoxAutoRefresh";
+            this.chkBoxAutoRefresh.Size = new System.Drawing.Size(88, 17);
+            this.chkBoxAutoRefresh.TabIndex = 4;
+            this.chkBoxAutoRefresh.Text = "Auto Refresh";
+            this.chkBoxAutoRefresh.UseVisualStyleBackColor = true;
+            this.chkBoxAutoRefresh.CheckedChanged += new System.EventHandler(this.chkBoxAutoRefresh_CheckedChanged);
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(873, 27);
+            this.btnClear.Location = new System.Drawing.Point(873, 29);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
-            this.btnClear.TabIndex = 8;
+            this.btnClear.TabIndex = 6;
             this.btnClear.Text = "Clear Table";
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
@@ -179,7 +205,7 @@
             this.dataGridViewSMS.RowHeadersVisible = false;
             this.dataGridViewSMS.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridViewSMS.Size = new System.Drawing.Size(936, 385);
-            this.dataGridViewSMS.TabIndex = 9;
+            this.dataGridViewSMS.TabIndex = 7;
             this.dataGridViewSMS.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSMS_CellClick);
             this.dataGridViewSMS.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSMS_CellValueChanged);
             this.dataGridViewSMS.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridViewSMS_ColumnHeaderMouseClick);
@@ -197,8 +223,8 @@
             // ColumnID
             // 
             this.ColumnID.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle1;
             this.ColumnID.HeaderText = "ID";
             this.ColumnID.Name = "ColumnID";
             this.ColumnID.ReadOnly = true;
@@ -248,10 +274,10 @@
             // btnDelete
             // 
             this.btnDelete.Enabled = false;
-            this.btnDelete.Location = new System.Drawing.Point(553, 26);
+            this.btnDelete.Location = new System.Drawing.Point(698, 29);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(124, 23);
-            this.btnDelete.TabIndex = 10;
+            this.btnDelete.TabIndex = 5;
             this.btnDelete.Text = "Delete selected entries";
             this.btnDelete.UseVisualStyleBackColor = true;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
@@ -264,7 +290,7 @@
             this.Controls.Add(this.btnDelete);
             this.Controls.Add(this.dataGridViewSMS);
             this.Controls.Add(this.btnClear);
-            this.Controls.Add(this.checkBoxAutoRefresh);
+            this.Controls.Add(this.chkBoxAutoRefresh);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRefreshPorts);
             this.Controls.Add(this.btnListSMS);
@@ -295,7 +321,7 @@
         private System.Windows.Forms.Button btnRefreshPorts;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel programStatus;
-        private System.Windows.Forms.CheckBox checkBoxAutoRefresh;
+        private System.Windows.Forms.CheckBox chkBoxAutoRefresh;
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.DataGridView dataGridViewSMS;
         private System.Windows.Forms.ToolStripStatusLabel copyStatus;
@@ -307,6 +333,9 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnTimeStamp;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDischarge;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnResponse;
+        private System.Windows.Forms.ToolStripMenuItem changePathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem currentSavePathToolStripMenuItem;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
     }
 }
 

@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
 namespace GSM_Modem
@@ -24,8 +25,10 @@ namespace GSM_Modem
         private SerialPort port;
         private string portName;
         private Thread statusThread;
+        private Thread listSMS;
         private AutoResetEvent receiveNow;
-
+        List<ConfirmationMessage> confirmMsgs;
+        List<ConfirmationMessage> loadedConfirmMsgs;
         //////////////////////////////////////////
 
         public MainForm()
@@ -39,6 +42,7 @@ namespace GSM_Modem
             statusStrip1.Items.Insert(1, new ToolStripSeparator());
         }
 
+
         //////////////////////////////////////////
 
         #region Events
@@ -50,8 +54,22 @@ namespace GSM_Modem
             comboBoxComPort.DataSource = ports;
             this.portName = this.comboBoxComPort.Text;
             programStatus.Text = "Status: not connected to a COM Port";
-            checkBoxAutoRefresh.Enabled = false;
+            chkBoxAutoRefresh.Enabled = false;
             btnListSMS.Enabled = false;
+            if (Properties.Settings.Default.savePath == "")
+            {
+                MessageBox.Show("No Save Path, Please choose a path to save the responses", "Warning");
+                if (!ChooseFilePath())
+                {
+                    MessageBox.Show("Responses will not be saved", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else
+            {
+                loadedConfirmMsgs = new List<ConfirmationMessage>();
+                loadedConfirmMsgs = LoadResponses();
+
+            }
         }
         private void btnRefreshports_Click(object sender, EventArgs e)
         {
@@ -68,7 +86,6 @@ namespace GSM_Modem
             else if (btnConnect.Text == "Disconnect")
             {
                 ClosePortConnection();
-                btnConnect.Text = "Connect";
             }
         }
         private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -87,14 +104,14 @@ namespace GSM_Modem
         }
         private void btnListSMS_Click(object sender, EventArgs e)
         {
-            this.dataGridViewSMS.Rows.Clear();
-            this.dataGridViewSMS.Refresh();
-            string result = ExecCommand("at+cmgl=4");
-            List<ConfirmationMessage> confirmationMessages = ParseConfirmationMessage(result);
-            foreach (var item in confirmationMessages)
+            if (loadedConfirmMsgs.Count != 0)
             {
-                DataGridViewRow dataGridViewRow = new DataGridViewRow();
-                dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
+                dataGridViewSMS.Rows.Clear();
+                dataGridViewSMS.Refresh();
+                foreach (var item in loadedConfirmMsgs)
+                {
+                    DataGridViewRow dataGridViewRow = new DataGridViewRow();
+                    dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
                         false,
                         item.GetID().ToString(),
                         item.GetTelNr(),
@@ -103,10 +120,16 @@ namespace GSM_Modem
                         item.GetDischarge().ToString(),
                         item.GetMessage()
                     });
-                this.dataGridViewSMS.Rows.Add(dataGridViewRow);
+                    dataGridViewSMS.Rows.Add(dataGridViewRow);
+                }
+            }
+            else
+            {
+                listSMS = new Thread(ListSMS);
+                listSMS.Start();
             }
         }
-        private void checkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
+        private void chkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
         {
             Thread autoRefresh = new Thread(AutoRefresh);
             if ((sender as CheckBox).Checked)
@@ -135,11 +158,11 @@ namespace GSM_Modem
                     for (int i = 0; i < senderGrid.RowCount; i++)
                         senderGrid.Rows[i].Cells[e.ColumnIndex].Style.BackColor = Color.White;
                     senderGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.BackColor = Color.Red;
-                    SetStatusMessage("Copied Message " + senderGrid.Rows[e.RowIndex].Cells[1].Value, false);
+                    SetStatusMessage("", false, false, "Copied Message " + senderGrid.Rows[e.RowIndex].Cells[1].Value);
                 }
                 catch (Exception)
                 {
-                    ShowStatusMessage("Value could not be copied. Please Restart the PC");
+                    SetStatusMessage("", false, false, "Value could not be copied. Please Restart the PC");
                 }
             }
             else if (e.ColumnIndex == senderGrid.Columns.GetFirstColumn(DataGridViewElementStates.None, DataGridViewElementStates.None).Index)
@@ -164,7 +187,9 @@ namespace GSM_Modem
                 if (port.IsOpen)
                     port.Close();
             }
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
             catch (Exception ex)
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
             {
             }
         }
@@ -240,6 +265,23 @@ namespace GSM_Modem
             }
 
         }
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChooseFilePath();
+        }
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Environment.Exit(Environment.ExitCode);
+        }
+        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            var s = e.EventType;
+            this.InvokeEx(f => f.SaveResponses(this.confirmMsgs));
+        }
+        private void currentSavePathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Responses are being saved here: \n" + Properties.Settings.Default.savePath, "Current Save Path");
+        }
         #endregion
 
 
@@ -251,6 +293,7 @@ namespace GSM_Modem
         private void OpenPortConnection(string portName)
         {
             port = new SerialPort();
+            port.DataReceived += Port_DataReceived;
             receiveNow = new AutoResetEvent(false);
             try
             {
@@ -268,12 +311,15 @@ namespace GSM_Modem
                 port.RtsEnable = true;
                 programStatus.Text = "Status: Connected to COM Port " + comboBoxComPort.Text;
                 btnConnect.Text = "Disconnect";
-                this.checkBoxAutoRefresh.Enabled = true;
+                this.chkBoxAutoRefresh.Checked = false;
+                this.chkBoxAutoRefresh.Enabled = true;
                 this.btnListSMS.Enabled = true;
             }
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
             catch (Exception ex)
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
             {
-                SetStatusMessage("Error: COMPort " + comboBoxComPort.Text + " already in use by another Program", true);
+                SetStatusMessage("Error: COMPort " + comboBoxComPort.Text + " already in use by another Program", true, true, "");
             }
         }
 
@@ -285,17 +331,18 @@ namespace GSM_Modem
         {
             try
             {
-                if (port.IsOpen)
+                if (port.IsOpen && (this.listSMS == null || !this.listSMS.IsAlive))
                 {
                     port.Close();
-                    SetStatusMessage("Status: COM Port " + comboBoxComPort.Text + " disconnected", true);
-                    this.checkBoxAutoRefresh.Enabled = false;
+                    SetStatusMessage("Status: COM Port " + comboBoxComPort.Text + " disconnected", false, true, "Status: not connected to a COM Port");
+                    this.chkBoxAutoRefresh.Enabled = false;
                     this.btnListSMS.Enabled = false;
+                    btnConnect.Text = "Connect";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                SetStatusMessage("Error: Could not disconnect Comport " + comboBoxComPort.Text, true);
+                SetStatusMessage("Error: Could not disconnect Comport " + comboBoxComPort.Text, true, true, "");
             }
         }
         #endregion
@@ -307,18 +354,11 @@ namespace GSM_Modem
         /// </summary>
         private void AutoRefresh()
         {
-            while (this.checkBoxAutoRefresh.Checked)
+            while (this.chkBoxAutoRefresh.Checked)
             {
-                this.InvokeEx(f => f.dataGridViewSMS.Rows.Clear());
-                string result = ExecCommand("at+cmgl=4");
-                List<ConfirmationMessage> confirmationMessages = ParseConfirmationMessage(result);
-                foreach (var item in confirmationMessages)
-                {
-                    string[] row = { item.GetID().ToString(), item.GetTelNr(), item.GetStatus(), item.GetTimeStamp().ToString(), item.GetDischarge().ToString(), item.GetMessage() };
-                    this.InvokeEx(f => f.dataGridViewSMS.Rows.Add(row));
-                }
+                this.InvokeEx(f => f.btnListSMS_Click(null, null));
+                Thread.Sleep(1000);
             }
-            Thread.Sleep(1000);
         }
 
         /// <summary>
@@ -337,12 +377,14 @@ namespace GSM_Modem
 
                 string input = ReadResponse(300);
                 if ((input.Length == 0) || ((!input.EndsWith("\r\n> ")) && (!input.EndsWith("\r\nOK\r\n"))))
-                    SetStatusMessage("No success message was received.", true);
+                    SetStatusMessage("No success message was received.", true, true, "");
                 return input;
             }
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
             catch (Exception ex)
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
             {
-                throw ex;
+                return "";
             }
         }
 
@@ -366,9 +408,12 @@ namespace GSM_Modem
                     else
                     {
                         if (buffer.Length > 0)
-                            SetStatusMessage("Response received is incomplete.", true);
+                        {
+                            SetStatusMessage("Response received is incomplete.", true, true, "");
+                            break;
+                        }
                         else
-                            SetStatusMessage("No data received from modem.", true);
+                            SetStatusMessage("No data received from modem.", true, true, "");
                     }
                 }
                 while (!buffer.EndsWith("\r\nOK\r\n") && !buffer.EndsWith("\r\n> ") && !buffer.EndsWith("\r\nERROR\r\n"));
@@ -389,7 +434,8 @@ namespace GSM_Modem
         {
             List<string> messages = message.Split(new string[] { "+CMGL: " }, StringSplitOptions.RemoveEmptyEntries).ToList();
             List<ConfirmationMessage> confirmationMessages = new List<ConfirmationMessage>();
-            messages.RemoveAt(0);
+            if (messages.Count != 0)
+                messages.RemoveAt(0);
             foreach (var item in messages)
             {
                 List<string> messageParts = item.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -425,6 +471,99 @@ namespace GSM_Modem
             }
             return confirmationMessages;
         }
+
+        /// <summary>
+        /// Executes the read AT Command and lists the SMS on the DataGridView
+        /// </summary>
+        private void ListSMS()
+        {
+            this.InvokeEx(f => f.dataGridViewSMS.Rows.Clear());
+            this.InvokeEx(f => f.dataGridViewSMS.Refresh());
+            string result = ExecCommand("at+cmgl=4");
+            confirmMsgs = ParseConfirmationMessage(result);
+            SaveResponses(confirmMsgs);
+            foreach (var item in confirmMsgs)
+            {
+                DataGridViewRow dataGridViewRow = new DataGridViewRow();
+                dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
+                        false,
+                        item.GetID().ToString(),
+                        item.GetTelNr(),
+                        item.GetStatus(),
+                        item.GetTimeStamp().ToString(),
+                        item.GetDischarge().ToString(),
+                        item.GetMessage()
+                    });
+                this.InvokeEx(f => f.dataGridViewSMS.Rows.Add(dataGridViewRow));
+            }
+        }
+
+        /// <summary>
+        /// Save read responses on a local file
+        /// </summary>
+        /// <param name="confirmMsgs">responses to be saved</param>
+        private void SaveResponses(List<ConfirmationMessage> confirmMsgs)
+        {
+            List<ConfirmationMessage> msgsToSerialze = new List<ConfirmationMessage>();
+            if (confirmMsgs != null)
+            {
+                foreach (var item in confirmMsgs)
+                {
+                    if (!CompareResponse(item))
+                    {
+                        msgsToSerialze.Add(item);
+                    }
+                }
+                var json = new JavaScriptSerializer().Serialize(msgsToSerialze);
+                StreamWriter streamWriter = new StreamWriter(Properties.Settings.Default.savePath, false);
+                streamWriter.Write(json);
+                streamWriter.Close();
+
+            }
+        }
+
+        /// <summary>
+        /// Compares incoming responses with locally saved responses
+        /// </summary>
+        /// <param name="confirmMsg"></param>
+        /// <returns></returns>
+        private bool CompareResponse(ConfirmationMessage confirmMsg)
+        {
+            //if it has been saved = true else false
+            return false;
+
+        }
+
+        /// <summary>
+        /// Loads locally saved responses
+        /// </summary>
+        /// <returns></returns>
+        private List<ConfirmationMessage> LoadResponses()
+        {
+            string readJson = File.ReadAllText(Properties.Settings.Default.savePath);
+            List<ConfirmationMessage> loadedConfirmMsgs = new JavaScriptSerializer().Deserialize<List<ConfirmationMessage>>(readJson);
+            return loadedConfirmMsgs;
+        }
+
+        /// <summary>
+        /// opens FolderBrowserDialog to change savePath
+        /// </summary>
+        /// <returns></returns>
+        private bool ChooseFilePath()
+        {
+            folderBrowserDialog = new FolderBrowserDialog();
+            DialogResult r = folderBrowserDialog.ShowDialog();
+            if (r == DialogResult.OK)
+            {
+                Properties.Settings.Default.savePath = folderBrowserDialog.SelectedPath + "\\SavedResponses.json";
+                Properties.Settings.Default.Save();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         #endregion
 
 
@@ -432,20 +571,49 @@ namespace GSM_Modem
         /// <summary>
         /// Determine what kind of message you want to display
         /// </summary>
-        /// <param name="statusMessage">the string to display</param>
-        /// <param name="tmp">wether the message is a program status or copyStatus</param>
-        private void SetStatusMessage(string statusMessage, bool tmp)
+        /// <param name="statusMessage"></param>
+        /// <param name="programStatus">should the message be temporary</param>
+        private void SetStatusMessage(string statusMessage, bool programStatus)
         {
-            if (tmp)
+            if (programStatus)
             {
-                statusThread = new Thread(
-       () => ShowStatusMessage(statusMessage));
+                statusThread = new Thread(() => ShowStatusMessageTmp(statusMessage));
                 statusThread.Start();
             }
             else
             {
-                statusThread = new Thread(
-       () => ShowCopiedValue(statusMessage));
+                statusThread = new Thread(() => ShowCopiedValue(statusMessage));
+                statusThread.Start();
+            }
+        }
+
+        /// <summary>
+        /// Determine what kind of message you want to display
+        /// </summary>
+        /// <param name="tmpMessage">(Only when it's a temporary status message, otherwise leave empty) the message that should be temporary displayed</param>
+        /// <param name="tmp">should the message be temporary</param>
+        /// <param name="programStatus">should the message be displayed as the program status</param>
+        /// <param name="statusMessage">(Only when it's a permanent status message, otherwise leave empty) the message that should be displayed</param>
+        private void SetStatusMessage(string tmpMessage, bool tmp, bool programStatus, string statusMessage)
+        {
+            if (tmp && programStatus)
+            {
+                statusThread = new Thread(() => ShowStatusMessageTmp(tmpMessage));
+                statusThread.Start();
+            }
+            else if (!tmp && programStatus)
+            {
+                statusThread = new Thread(() => ShowStatusMessage(tmpMessage, statusMessage));
+                statusThread.Start();
+            }
+            else if (tmp && !programStatus)
+            {
+                statusThread = new Thread(() => ShowCopiedValueTmp(tmpMessage));
+                statusThread.Start();
+            }
+            else if (!tmp && !programStatus)
+            {
+                statusThread = new Thread(() => ShowCopiedValue(statusMessage));
                 statusThread.Start();
             }
         }
@@ -454,12 +622,32 @@ namespace GSM_Modem
         /// Display a string on the statuslabel "programStatus"
         /// </summary>
         /// <param name="message"></param>
-        private void ShowStatusMessage(string message)
+        private void ShowStatusMessageTmp(string message)
         {
             string previousMessage = programStatus.Text;
             this.programStatus.Text = message;
             Thread.Sleep(2500);
             this.programStatus.Text = previousMessage;
+        }
+
+        /// <summary>
+        /// Display a string on the statuslabel "programStatus"
+        /// </summary>
+        /// <param name="tmpMessage"></param>
+        private void ShowStatusMessage(string tmpMessage, string message)
+        {
+            this.programStatus.Text = tmpMessage;
+            Thread.Sleep(2500);
+            this.programStatus.Text = message;
+        }
+
+        /// <summary>
+        /// Display a string on the statuslabel "copyStatus"
+        /// </summary>
+        /// <param name="message"></param>
+        private void ShowCopiedValueTmp(string message)
+        {
+            this.copyStatus.Text = message;
         }
 
         /// <summary>
