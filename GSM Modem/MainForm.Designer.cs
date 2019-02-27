@@ -23,12 +23,13 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.changePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.currentSavePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chooseSavePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentSavePathToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
             this.btnListSMS = new System.Windows.Forms.Button();
@@ -56,7 +57,8 @@
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem});
+            this.fileToolStripMenuItem,
+            this.optionsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(960, 24);
@@ -66,27 +68,10 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.changePathToolStripMenuItem,
-            this.currentSavePathToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
-            // 
-            // changePathToolStripMenuItem
-            // 
-            this.changePathToolStripMenuItem.Name = "changePathToolStripMenuItem";
-            this.changePathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.changePathToolStripMenuItem.Tag = "";
-            this.changePathToolStripMenuItem.Text = "Choose Save Path";
-            this.changePathToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
-            // 
-            // currentSavePathToolStripMenuItem
-            // 
-            this.currentSavePathToolStripMenuItem.Name = "currentSavePathToolStripMenuItem";
-            this.currentSavePathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.currentSavePathToolStripMenuItem.Text = "Current Save Path";
-            this.currentSavePathToolStripMenuItem.Click += new System.EventHandler(this.currentSavePathToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
@@ -95,6 +80,29 @@
             this.exitToolStripMenuItem.Tag = "";
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // optionsToolStripMenuItem
+            // 
+            this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.chooseSavePathToolStripMenuItem,
+            this.currentSavePathToolStripMenuItem1});
+            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.optionsToolStripMenuItem.Text = "Options";
+            // 
+            // chooseSavePathToolStripMenuItem
+            // 
+            this.chooseSavePathToolStripMenuItem.Name = "chooseSavePathToolStripMenuItem";
+            this.chooseSavePathToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+            this.chooseSavePathToolStripMenuItem.Text = "Choose Save Path";
+            this.chooseSavePathToolStripMenuItem.Click += new System.EventHandler(this.choosePathToolStripMenuItem_Click);
+            // 
+            // currentSavePathToolStripMenuItem1
+            // 
+            this.currentSavePathToolStripMenuItem1.Name = "currentSavePathToolStripMenuItem1";
+            this.currentSavePathToolStripMenuItem1.Size = new System.Drawing.Size(223, 22);
+            this.currentSavePathToolStripMenuItem1.Text = "Current Save Path";
+            this.currentSavePathToolStripMenuItem1.Click += new System.EventHandler(this.currentSavePathToolStripMenuItem_Click);
             // 
             // btnConnect
             // 
@@ -223,8 +231,8 @@
             // ColumnID
             // 
             this.ColumnID.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ColumnID.DefaultCellStyle = dataGridViewCellStyle3;
             this.ColumnID.HeaderText = "ID";
             this.ColumnID.Name = "ColumnID";
             this.ColumnID.ReadOnly = true;
@@ -333,9 +341,10 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnTimeStamp;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDischarge;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnResponse;
-        private System.Windows.Forms.ToolStripMenuItem changePathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem currentSavePathToolStripMenuItem;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
+        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem chooseSavePathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem currentSavePathToolStripMenuItem1;
     }
 }
 

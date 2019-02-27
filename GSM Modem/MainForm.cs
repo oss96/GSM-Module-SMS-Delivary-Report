@@ -1,10 +1,6 @@
-﻿using GsmComm;
-using GsmComm.PduConverter;
+﻿using GsmComm.PduConverter;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
@@ -12,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
@@ -24,11 +19,13 @@ namespace GSM_Modem
 
         private SerialPort port;
         private string portName;
-        private Thread statusThread;
-        private Thread listSMS;
+        private Thread stsThrd;
+        private Thread lstSMSThrd;
         private AutoResetEvent receiveNow;
         List<ConfirmationMessage> confirmMsgs;
         List<ConfirmationMessage> loadedConfirmMsgs;
+        private string filePath = Properties.Settings.Default.savePath + "\\SavedResponses.json";
+
         //////////////////////////////////////////
 
         public MainForm()
@@ -56,13 +53,14 @@ namespace GSM_Modem
             programStatus.Text = "Status: not connected to a COM Port";
             chkBoxAutoRefresh.Enabled = false;
             btnListSMS.Enabled = false;
-            if (Properties.Settings.Default.savePath == "")
+            if (!Directory.Exists(Properties.Settings.Default.savePath))
             {
                 MessageBox.Show("No Save Path, Please choose a path to save the responses", "Warning");
                 if (!ChooseFilePath())
                 {
                     MessageBox.Show("Responses will not be saved", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
+                loadedConfirmMsgs = new List<ConfirmationMessage>();
             }
             else
             {
@@ -123,22 +121,19 @@ namespace GSM_Modem
                     dataGridViewSMS.Rows.Add(dataGridViewRow);
                 }
             }
-            else
-            {
-                listSMS = new Thread(ListSMS);
-                listSMS.Start();
-            }
+            lstSMSThrd = new Thread(ListSMS);
+            lstSMSThrd.Start();
         }
         private void chkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
         {
-            Thread autoRefresh = new Thread(AutoRefresh);
+            Thread autoRfrshThrd = new Thread(AutoRefresh);
             if ((sender as CheckBox).Checked)
             {
-                autoRefresh.Start();
+                autoRfrshThrd.Start();
             }
             else
             {
-                autoRefresh = null;
+                autoRfrshThrd = null;
             }
         }
         private void btnClear_Click(object sender, EventArgs e)
@@ -206,12 +201,11 @@ namespace GSM_Modem
             foreach (var item in dataGridViewSMS.Rows)
                 if (Convert.ToBoolean((item as DataGridViewRow).Cells[0].Value))
                     ids.Add(Convert.ToInt32((item as DataGridViewRow).Cells[1].Value.ToString()));
+            /*remove from loadedConfirmMsgs
             foreach (var item in ids)
             {
-                string result = ExecCommand("at+cmgd=" + item);
-            }
-            this.btnDelete.Enabled = false;
-            btnListSMS_Click(null, e);
+                loadedConfirmMsgs.RemoveAt(item - 1);
+            }*/
         }
         private void dataGridViewSMS_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -265,7 +259,7 @@ namespace GSM_Modem
             }
 
         }
-        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void choosePathToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ChooseFilePath();
         }
@@ -331,7 +325,7 @@ namespace GSM_Modem
         {
             try
             {
-                if (port.IsOpen && (this.listSMS == null || !this.listSMS.IsAlive))
+                if (port.IsOpen && (this.lstSMSThrd == null || !this.lstSMSThrd.IsAlive))
                 {
                     port.Close();
                     SetStatusMessage("Status: COM Port " + comboBoxComPort.Text + " disconnected", false, true, "Status: not connected to a COM Port");
@@ -477,25 +471,10 @@ namespace GSM_Modem
         /// </summary>
         private void ListSMS()
         {
-            this.InvokeEx(f => f.dataGridViewSMS.Rows.Clear());
-            this.InvokeEx(f => f.dataGridViewSMS.Refresh());
             string result = ExecCommand("at+cmgl=4");
             confirmMsgs = ParseConfirmationMessage(result);
             SaveResponses(confirmMsgs);
-            foreach (var item in confirmMsgs)
-            {
-                DataGridViewRow dataGridViewRow = new DataGridViewRow();
-                dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
-                        false,
-                        item.GetID().ToString(),
-                        item.GetTelNr(),
-                        item.GetStatus(),
-                        item.GetTimeStamp().ToString(),
-                        item.GetDischarge().ToString(),
-                        item.GetMessage()
-                    });
-                this.InvokeEx(f => f.dataGridViewSMS.Rows.Add(dataGridViewRow));
-            }
+            confirmMsgs = LoadResponses();
         }
 
         /// <summary>
@@ -505,6 +484,14 @@ namespace GSM_Modem
         private void SaveResponses(List<ConfirmationMessage> confirmMsgs)
         {
             List<ConfirmationMessage> msgsToSerialze = new List<ConfirmationMessage>();
+            msgsToSerialze.AddRange(loadedConfirmMsgs);
+            int i = 1;
+            foreach (var item in msgsToSerialze)
+            {
+                item.SetID(i);
+                i++;
+            }
+            List<int> ids = new List<int>();
             if (confirmMsgs != null)
             {
                 foreach (var item in confirmMsgs)
@@ -512,13 +499,18 @@ namespace GSM_Modem
                     if (!CompareResponse(item))
                     {
                         msgsToSerialze.Add(item);
+                        ids.Add(item.GetID());
                     }
                 }
                 var json = new JavaScriptSerializer().Serialize(msgsToSerialze);
-                StreamWriter streamWriter = new StreamWriter(Properties.Settings.Default.savePath, false);
-                streamWriter.Write(json);
-                streamWriter.Close();
-
+                if (IsFileLocked(new FileInfo(filePath)))
+                {
+                    StreamWriter streamWriter = new StreamWriter(filePath, false);
+                    streamWriter.Write(json);
+                    streamWriter.Close();
+                    Thread dltThread = new Thread(() => DeleteMessages(ids));
+                    dltThread.Start();
+                }
             }
         }
 
@@ -530,8 +522,19 @@ namespace GSM_Modem
         private bool CompareResponse(ConfirmationMessage confirmMsg)
         {
             //if it has been saved = true else false
-            return false;
-
+            bool result = false;
+            foreach (var item in loadedConfirmMsgs)
+            {
+                if (item.message == confirmMsg.message)
+                {
+                    result = true;
+                }
+                else
+                {
+                    result = false;
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -540,9 +543,23 @@ namespace GSM_Modem
         /// <returns></returns>
         private List<ConfirmationMessage> LoadResponses()
         {
-            string readJson = File.ReadAllText(Properties.Settings.Default.savePath);
-            List<ConfirmationMessage> loadedConfirmMsgs = new JavaScriptSerializer().Deserialize<List<ConfirmationMessage>>(readJson);
+            if (File.Exists(Properties.Settings.Default.savePath + "\\SavedResponses.json"))
+            {
+                string readJson = File.ReadAllText(Properties.Settings.Default.savePath + "\\SavedResponses.json");
+                List<ConfirmationMessage> loadedConfirmMsgs = new JavaScriptSerializer().Deserialize<List<ConfirmationMessage>>(readJson);
+            }
             return loadedConfirmMsgs;
+        }
+
+        /// <summary>
+        /// send AT command to delete messages from the modem
+        /// </summary>
+        private void DeleteMessages(List<int> ids)
+        {
+            foreach (var item in ids)
+            {
+                string result = ExecCommand("at+cmgd=" + item);
+            }
         }
 
         /// <summary>
@@ -555,7 +572,7 @@ namespace GSM_Modem
             DialogResult r = folderBrowserDialog.ShowDialog();
             if (r == DialogResult.OK)
             {
-                Properties.Settings.Default.savePath = folderBrowserDialog.SelectedPath + "\\SavedResponses.json";
+                Properties.Settings.Default.savePath = folderBrowserDialog.SelectedPath;
                 Properties.Settings.Default.Save();
                 return true;
             }
@@ -563,6 +580,35 @@ namespace GSM_Modem
             {
                 return false;
             }
+        }
+
+
+        protected virtual bool IsFileLocked(FileInfo file)
+        {
+            FileStream stream = null;
+
+            try
+            {
+                stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+            }
+            catch (IOException)
+            {
+                /*
+                the file is unavailable because it is:
+                still being written to
+                or being processed by another thread
+                or does not exist (has already been processed)
+                */
+                return true;
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Close();
+            }
+
+            //file is not locked
+            return false;
         }
         #endregion
 
@@ -577,13 +623,13 @@ namespace GSM_Modem
         {
             if (programStatus)
             {
-                statusThread = new Thread(() => ShowStatusMessageTmp(statusMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowStatusMessageTmp(statusMessage));
+                stsThrd.Start();
             }
             else
             {
-                statusThread = new Thread(() => ShowCopiedValue(statusMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowCopiedValue(statusMessage));
+                stsThrd.Start();
             }
         }
 
@@ -598,23 +644,23 @@ namespace GSM_Modem
         {
             if (tmp && programStatus)
             {
-                statusThread = new Thread(() => ShowStatusMessageTmp(tmpMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowStatusMessageTmp(tmpMessage));
+                stsThrd.Start();
             }
             else if (!tmp && programStatus)
             {
-                statusThread = new Thread(() => ShowStatusMessage(tmpMessage, statusMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowStatusMessage(tmpMessage, statusMessage));
+                stsThrd.Start();
             }
             else if (tmp && !programStatus)
             {
-                statusThread = new Thread(() => ShowCopiedValueTmp(tmpMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowCopiedValueTmp(tmpMessage));
+                stsThrd.Start();
             }
             else if (!tmp && !programStatus)
             {
-                statusThread = new Thread(() => ShowCopiedValue(statusMessage));
-                statusThread.Start();
+                stsThrd = new Thread(() => ShowCopiedValue(statusMessage));
+                stsThrd.Start();
             }
         }
 
@@ -663,7 +709,6 @@ namespace GSM_Modem
         //////////////////////////////////////////
 
         /* Next Steps:
-         * save responses locally
          * delete saved responses
          * all saved responses should start with the id 11 - ... because new responses have ids from 1 - 10
          * Autorefresh without refreshing everything, only the new responses
