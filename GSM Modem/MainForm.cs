@@ -60,12 +60,12 @@ namespace GSM_Modem
                 {
                     MessageBox.Show("Responses will not be saved", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                loadedConfirmMsgs = new List<ConfirmationMessage>();
+                this.loadedConfirmMsgs = new List<ConfirmationMessage>();
             }
             else
             {
-                loadedConfirmMsgs = new List<ConfirmationMessage>();
-                loadedConfirmMsgs = LoadResponses();
+                this.loadedConfirmMsgs = new List<ConfirmationMessage>();
+                this.loadedConfirmMsgs = LoadResponses();
 
             }
         }
@@ -102,11 +102,13 @@ namespace GSM_Modem
         }
         private void btnListSMS_Click(object sender, EventArgs e)
         {
-            if (loadedConfirmMsgs.Count != 0)
+            lstSMSThrd = new Thread(ListSMS);
+            lstSMSThrd.Start();
+            if (this.loadedConfirmMsgs.Count != 0)
             {
                 dataGridViewSMS.Rows.Clear();
                 dataGridViewSMS.Refresh();
-                foreach (var item in loadedConfirmMsgs)
+                foreach (var item in this.loadedConfirmMsgs)
                 {
                     DataGridViewRow dataGridViewRow = new DataGridViewRow();
                     dataGridViewRow.CreateCells(dataGridViewSMS, new object[] {
@@ -121,8 +123,6 @@ namespace GSM_Modem
                     dataGridViewSMS.Rows.Add(dataGridViewRow);
                 }
             }
-            lstSMSThrd = new Thread(ListSMS);
-            lstSMSThrd.Start();
         }
         private void chkBoxAutoRefresh_CheckedChanged(object sender, EventArgs e)
         {
@@ -274,7 +274,7 @@ namespace GSM_Modem
         }
         private void currentSavePathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Responses are being saved here: \n" + Properties.Settings.Default.savePath, "Current Save Path");
+            MessageBox.Show("Responses are being saved here: \n" + filePath, "Current Save Path");
         }
         #endregion
 
@@ -483,8 +483,12 @@ namespace GSM_Modem
         /// <param name="confirmMsgs">responses to be saved</param>
         private void SaveResponses(List<ConfirmationMessage> confirmMsgs)
         {
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath);
+            }
             List<ConfirmationMessage> msgsToSerialze = new List<ConfirmationMessage>();
-            msgsToSerialze.AddRange(loadedConfirmMsgs);
+            msgsToSerialze.AddRange(this.loadedConfirmMsgs);
             int i = 1;
             foreach (var item in msgsToSerialze)
             {
@@ -503,13 +507,13 @@ namespace GSM_Modem
                     }
                 }
                 var json = new JavaScriptSerializer().Serialize(msgsToSerialze);
-                if (IsFileLocked(new FileInfo(filePath)))
+                if (!IsFileLocked(new FileInfo(filePath)))
                 {
                     StreamWriter streamWriter = new StreamWriter(filePath, false);
                     streamWriter.Write(json);
                     streamWriter.Close();
-                    Thread dltThread = new Thread(() => DeleteMessages(ids));
-                    dltThread.Start();
+                    //Thread dltThread = new Thread(() => DeleteMessages(ids));
+                    //dltThread.Start();
                 }
             }
         }
@@ -523,7 +527,7 @@ namespace GSM_Modem
         {
             //if it has been saved = true else false
             bool result = false;
-            foreach (var item in loadedConfirmMsgs)
+            foreach (var item in this.loadedConfirmMsgs)
             {
                 if (item.message == confirmMsg.message)
                 {
@@ -543,10 +547,12 @@ namespace GSM_Modem
         /// <returns></returns>
         private List<ConfirmationMessage> LoadResponses()
         {
-            if (File.Exists(Properties.Settings.Default.savePath + "\\SavedResponses.json"))
+            if (File.Exists(filePath))
             {
-                string readJson = File.ReadAllText(Properties.Settings.Default.savePath + "\\SavedResponses.json");
-                List<ConfirmationMessage> loadedConfirmMsgs = new JavaScriptSerializer().Deserialize<List<ConfirmationMessage>>(readJson);
+                StreamReader sr = new StreamReader(filePath);
+                string readJson = sr.ReadToEnd();
+                sr.Close();
+                this.loadedConfirmMsgs = new JavaScriptSerializer().Deserialize<List<ConfirmationMessage>>(readJson);
             }
             return loadedConfirmMsgs;
         }
